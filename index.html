@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Calculadora para melhorar Crops (Todas as tribos)</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+		integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+		crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+		integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+		crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+		crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+	<style type="text/css">
+		label {
+			width: 200px;
+			float: left;
+			display: block;
+		}
+
+		a {
+			color: inherit;
+			text-decoration: underline white;
+		}
+
+		a:hover {
+			color: black;
+		}
+
+		.table {
+			color: rgb(92, 101, 255);
+			text-align: center;
+		}
+
+		.retangulo {
+			width: 100%;
+			height: auto;
+			background-image: linear-gradient(45deg, rgb(107, 106, 255), rgb(92, 101, 255));
+			min-width: 510px;
+			border-bottom-right-radius: 40%;
+			padding-left: 15px;
+			margin-top: -10px;
+		}
+
+		.stats {
+			min-width: 135px;
+		}
+
+		.producao {
+			min-width: 135px
+		}
+
+		.acao {
+			text-align: justify;
+			text-indent: 20px;
+			min-width: 260px;
+		}
+
+		.rdi {
+			text-align: center;
+			min-width: 90px;
+		}
+
+		.container-fluid {
+			padding-left: 0px;
+			padding-right: 0px;
+			padding-top: 10px;
+			font-size: 15px;
+			min-width: 510px;
+			color: white;
+		}
+	</style>
+	<script type="text/javascript">
+		var numFields = 15,
+			mill = 0,
+			bake = 0,
+			hm = 0,
+			o1 = 0,
+			o2 = 0,
+			o3 = 0,
+			oasis1 = false,
+			oasis2 = false,
+			oasis3 = false,
+			cap = true,
+			goldBonus = 1.25,
+			speed = 1;
+		tribo = false;
+		var levelsValues = [3, 7, 13, 21, 31, 46, 70, 98, 140, 203, 280, 392, 525, 691, 889, 1120, 1400, 1820, 2240, 2800, 3430, 4270];
+		var levelsIncrease = [0, 4, 6, 8, 10, 15, 24, 28, 42, 63, 77, 112, 133, 168, 196, 231, 280, 420, 420, 560, 630, 840];
+		var oasisBonuses = [0, 0, 0];
+		var o = 0;
+
+		var costs = {
+			m: [0, 2560, 4605, 8295, 14925, 26875],
+			b: [0, 5150, 9270, 16690, 30035, 54060],
+			hm: [0, 114240, 383315, 1595070],
+			oda: [0, 3105, 4065, 5325, 6980, 9145, 11975, 15695, 20555, 26925, 35280, 46215, 60545, 79310, 103895, 136105, 178300, 233560, 305965, 400815, 525070],
+		}
+
+		var fields = {
+			lvlsChanged: true,
+			production: 0,
+			levels: [0, 0, 0, 0, 0, 0],
+			values: [3, 7, 13, 21, 31, 46, 70, 98, 140, 203, 280, 392, 525, 691, 889, 1120, 1400, 1820, 2240, 2800, 3430, 4270],
+			increase: [0, 4, 6, 8, 10, 15, 24, 28, 42, 63, 77, 112, 133, 168, 196, 231, 280, 420, 420, 560, 630, 840],
+			costs: [0, 250, 415, 695, 1165, 1945, 3250, 5425, 9055, 15125, 25255, 42180, 70445, 117650, 196445, 328070, 547880, 914960, 1527985, 2551735, 4261410, 7116555],
+			lowest: function () {
+				return this.levels[numFields - 1];
+			},
+			highest: function () {
+				return this.levels[0];
+			},
+			uplowest: function () {
+				for (var i = 0; i < numFields; i++) {
+					if (this.levels[i] <= this.lowest()) {
+						this.levels[i] += 1;
+						this.lvlsChanged = true;
+						return this.levels[i];
+					}
+				}
+			},
+			uphighest: function () {
+				this.levels[0] += 1;
+				this.lvlsChanged = true;
+			},
+			tprod: function () {
+				var level = 0, prod = 0;
+				if (this.lvlsChanged) {
+					for (var i = 0; i < numFields; i++) {
+						level = this.levels[i];
+						prod += this.values[level];
+					}
+					this.production = prod;
+					this.lvlsChanged = false;
+				}
+
+				return this.production;
+			}
+		}
+
+		function setSpeed(input) {
+			speed = input;
+		}
+
+		function setTribo(input) {
+			tribo = (input == 1);
+		}
+
+		function setnumFields(input) {
+			numFields = input;
+
+			if (numFields == 6)
+				fields.levels = [0, 0, 0, 0, 0, 0];
+			else if (numFields == 7)
+				fields.levels = [0, 0, 0, 0, 0, 0, 0];
+			else if (numFields == 9)
+				fields.levels = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+			else if (numFields == 15)
+				fields.levels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+			else
+				fields.levels = [];
+		}
+
+		function oasisBonus() {
+			var bonus = 0;
+
+			if (oasis1) {
+				bonus += oasisBonuses[0];
+			}
+
+			if (oasis2) {
+				bonus += oasisBonuses[1];
+			}
+
+			if (oasis3) {
+				bonus += oasisBonuses[2];
+			}
+
+			bonus = bonus * (1 + (oda * 0.05));
+			var output = bonus;
+
+			return bonus;
+		}
+
+		function oasisBonus2() {
+			var bonus = 0;
+
+			if (oasis1) {
+				bonus += oasisBonuses[0];
+			}
+
+			if (oasis2) {
+				bonus += oasisBonuses[1];
+			}
+
+			if (oasis3) {
+				bonus += oasisBonuses[2];
+			}
+
+			bonus = (bonus * ((oda + 1) * 0.05)) - (bonus * (oda * 0.05));
+
+			return bonus;
+		}
+
+		function oasisBonus3() {
+
+			oasisBonuses[0] = oasisBonuses[0] * (1 + (oda * 0.05));
+
+			oasisBonuses[1] = oasisBonuses[1] * (1 + (oda * 0.05));
+
+			oasisBonuses[2] = oasisBonuses[2] * (1 + (oda * 0.05));
+
+			return "";
+		}
+
+		function totalprod() {
+			return fields.tprod() * (1 + oasisBonus() + (bake * 0.05) + (mill * 0.05))
+		}
+		function totalprodn(f, m) {
+			return (fields.tprod() + f) * (1 + oasisBonus() + (bake * 0.05) + (mill * 0.05) + m);
+		}
+
+		function setOasis1(input) {
+			o1 = parseFloat(input);
+		}
+
+		function setOasis2(input) {
+			o2 = parseFloat(input);
+		}
+
+		function setOasis3(input) {
+			o3 = parseFloat(input);
+		}
+
+		function addOases() {
+			oasisBonuses[0] = o1;
+			oasisBonuses[1] = o2;
+			oasisBonuses[2] = o3;
+
+			oasisBonuses.sort(function (a, b) { return b - a });
+		}
+
+		function setCap(input) {
+			cap = (input == 1);
+		}
+
+		function setGold(input) {
+			goldBonus = parseFloat(input);
+		}
+
+		function setProdIncr() {
+			for (var i = 0; i < levelsValues.length; i++) {
+				fields.values[i] = levelsValues[i] * speed;
+				fields.increase[i] = levelsIncrease[i] * speed;
+			}
+		}
+
+		function reset() {
+			if (!cap)
+				fields.costs[11] = 10000000;
+			else
+				fields.costs[11] = 42180;
+
+			setnumFields(numFields);
+			setProdIncr();
+			addOases();
+
+			fields.production = 0;
+			fields.lvlsChanged = true;
+
+			hm = 0;
+			mill = 0;
+			bake = 0;
+			oasis1 = false;
+			oasis2 = false;
+			oasis3 = false;
+			oda = 0;
+			o = 0;
+		}
+
+		function getNextStep() {
+			var output = "";
+			var action = 0;
+			var efficiency = 10000000;
+			var temp = 0;
+			var low = fields.lowest();
+			var high = fields.highest();
+
+
+			//test lowest fields
+			if (low <= 10 || cap)
+				efficiency = fields.costs[low + 1] / (totalprodn(fields.increase[low + 1], 0) - totalprod());
+
+			//test mill/bake rush if applicable
+			if (high < 10) {
+				if (high < 5) {
+					var tfi = 0; tfc = 0;
+
+					for (var i = high + 1; i < 6; i++) {
+						tfi += fields.increase[i];
+						tfc += fields.costs[i];
+					}
+
+					//try all mill level rushes
+					for (var i = 1; i < 6; i++) {
+						tfc += costs.m[i];
+						temp = tfc / (totalprodn(tfi, (i * 0.05)) - totalprod());
+						if (temp <= efficiency) {
+							efficiency = temp;
+							action = 1;
+							break;
+						}
+					}
+				} else if (low <= 10 || cap) {
+					var tfi = 0; tfc = 0; tfm = 0;
+
+					for (var i = high + 1; i < 11; i++) {
+						tfi += fields.increase[i];
+						tfc += fields.costs[i];
+					}
+
+					if (mill < 5) {
+						for (var i = mill; i < 5; i++) {
+							tfc += costs.m[i + 1];
+							tfm += 0.05;
+						}
+					}
+
+					//try all mill level rushes
+					for (var i = 1; i < 6; i++) {
+						tfc += costs.b[i];
+						temp = tfc / (totalprodn(tfi, (i * 0.05) + tfm) - totalprod());
+						if (temp <= efficiency) {
+							efficiency = temp;
+							action = 1;
+							break;
+						}
+					}
+				}
+			}
+
+			//test flowermill/bake special case
+			if (mill < 5 && high >= 10) {
+				var tfi = 0; tfc = 0; tfm = 0;
+
+				if (mill < 5) {
+					for (var i = mill; i < 5; i++) {
+						tfc += costs.m[i + 1];
+						tfm += 0.05;
+					}
+				}
+				//try all mill level rushes
+				for (var i = 1; i < 6; i++) {
+					tfc += costs.b[i];
+					temp = tfc / (totalprodn(tfi, (i * 0.05) + tfm) - totalprod());
+					if (temp <= efficiency) {
+						efficiency = temp;
+						action = 2;
+						break;
+					}
+				}
+			}
+
+			//test mill
+			if (high >= 5 && mill < 5) {
+				temp = costs.m[mill + 1] / (totalprodn(0, 0.05) - totalprod());
+
+				if (temp <= efficiency) {
+					efficiency = temp;
+					action = 2;
+				}
+			}
+
+			//test bake
+			if (high >= 10 && bake < 5 && mill == 5) {
+				temp = costs.b[bake + 1] / (totalprodn(0, 0.05) - totalprod());
+
+				if (temp <= efficiency) {
+					efficiency = temp;
+					action = 3;
+				}
+			}
+
+			//test obras de agua
+			if (hm >= 10 && tribo) {
+
+				temp = costs.oda[oda + 1] / (totalprodn(0, oasisBonus2()) - totalprod());
+
+				if (temp <= efficiency) {
+					efficiency = temp;
+					action = 4;
+				}
+			}
+
+			//test oasis
+			if ((o1 != 0 || o2 != 0 || o3 != 0)) {
+				if (!oasis1) {
+
+					temp = costs.hm[1] / (totalprodn(0, oasisBonuses[0] * (1 + (oda * 0.05))) - totalprod());
+
+					if (temp <= efficiency) {
+						efficiency = temp;
+						oasis1 = true;
+						hm = 10;
+						action = 5;
+					}
+				} else if (!oasis2) {
+					temp = costs.hm[2] / (totalprodn(0, oasisBonuses[1] * (1 + (oda * 0.05))) - totalprod());
+
+					if (temp <= efficiency) {
+						efficiency = temp;
+						oasis2 = true;
+						hm = 15;
+						action = 5;
+					}
+				} else if (!oasis3) {
+					temp = costs.hm[3] / (totalprodn(0, oasisBonuses[2] * (1 + (oda * 0.05))) - totalprod());
+
+					if (temp <= efficiency) {
+						efficiency = temp;
+						oasis3 = true;
+						hm = 20;
+						action = 5;
+					}
+				}
+			}
+
+			else if (efficiency == 10000000) {
+				return;
+			}
+
+			switch (action) {
+				case 0:
+					if (!cap && low == 10) {
+						return;
+					}
+					output += " Melhore um Campo de cereais para o nível " + fields.uplowest() + ". </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+
+				case 1:
+					if (!cap && low == 10) {
+						return;
+					}
+					fields.uphighest();
+					output += " <b>Melhore um Campo de cereais para o nível " + fields.highest() + "</b>. </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+
+				case 2:
+					mill++;
+					output += " <b>Melhore o Moinho para o nível " + mill + "</b>. </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+
+				case 3:
+					bake++;
+					output += " <b>Melhore a Padaria para o nível " + bake + "</b>. </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+
+				case 4:
+					oda++;
+					output += " <b>Melhore a Estação de Tratamento de Água para o nível " + oda + "</b>. </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+
+				case 5:
+					output += " <b>Melhore a Mansão do herói para o nível " + hm + " e capture seu oásis</b>. </td><td class='rdi'>" + Math.round(efficiency / goldBonus / .24) / 100 + "</td>";
+					break;
+			}
+
+			return output;
+		}
+
+		function getOrder() {
+			reset();
+			z = document.getElementById("demo");  // nothing
+			z.innerHTML = "Calculando...";
+			var output = "<p>*RDI = Retorno de Investimento</p><table class='table table-striped'><thead><tr><th class='stats'>[M, P, MH, ETA]</th><th>[Campos]</th><th class='producao'>Produção</th><th class='acao'>Ação</th><th>Dias para RDI*</th></tr></thead>";
+
+			if (cap) {
+				while (fields.lowest() < 21) {
+					o += 1;
+					output += "<tr><td>[" + mill + "," + bake + "," + hm + "," + oda + "]</td>" + "<td>[" + fields.levels + "]</td>" + "<td>" + Math.round(totalprod() * goldBonus) + "</td><td class='acao'>Passo " + o + ":" + getNextStep() + "</td></tr>";
+				}
+			} else if (!cap) {
+
+				while (fields.lowest() < 10 || mill < 5 || bake < 5 || oda > 0 && oda < 20 || hm < 10 && oasisBonuses[0] != 0 || hm < 15 && oasisBonuses[0] != 0 && oasisBonuses[1] != 0 || hm < 20 && oasisBonuses[0] != 0 && oasisBonuses[1] != 0 && oasisBonuses[2] != 0) {
+					o += 1;
+					output += "<tr><td>[" + mill + "," + bake + "," + hm + "," + oda + "]</td>" + "<td>[" + fields.levels + "]</td>" + "<td>" + Math.round(totalprod() * goldBonus) + "</td><td class='acao'>Passo " + o + ":" + getNextStep() + "</td></tr>";
+				}
+			}
+
+			output += "<tr><th>[" + mill + "," + bake + "," + hm + "," + oda + "]</th>" + "<th>[" + fields.levels + "]</th>" + "<th>" + Math.round(totalprod() * goldBonus) + oasisBonus3() + "</th><td class='acao'><b>Feito!</td><th class='rdi'>[" + oasisBonuses + "]</th></table>";
+
+			x = document.getElementById("demo");  // Find the element
+			x.innerHTML = output;   // Change the content
+		}
+	</script>
+</head>
+
+<body>
+	<div class="container-fluid">
+		<div class="retangulo">
+			<h1>Ordem de Cereal, Oásis, Moinho, Padaria, Estação de Tratamento de Água - Travian (Para todas as tribos)
+			</h1>
+			<p>Escrito por Bryan H.<br>Atualizado e traduzido por <b><a href="https://facebook.com/jardellimaa">Jardel
+						Lima</a></b> (27/09/2019)</p>
+			<form name="inputForm">
+				<div class="form-check-inline">
+					<label>Velocidade do Servidor</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="speed"
+						onChange="setSpeed(document.inputForm.speed.options[document.inputForm.speed.options.selectedIndex].value)">
+						<option value=1>1x</option>
+						<option value=2>2x</option>
+						<option value=3>3x</option>
+						<option value=5>5x</option>
+						<option value=10>10x</option>
+					</select>
+				</div>
+				<br>
+
+				<div class="form-check-inline">
+					<label>Quantidade de Campos</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="numFields"
+						onChange="setnumFields(document.inputForm.numFields.options[document.inputForm.numFields.options.selectedIndex].value)">
+						<option value=6>6Crop</option>
+						<option value=7>7Crop</option>
+						<option value=9>9Crop</option>
+						<option value=15 selected>15Crop</option>
+					</select>
+				</div>
+				<br>
+
+				<div class="form-check-inline">
+					<label>Capital?</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="cap"
+						onChange="setCap(document.inputForm.cap.options[document.inputForm.cap.options.selectedIndex].value)">
+						<option value=1>Sim</option>
+						<option value=0>Não</option>
+					</select>
+				</div>
+				<br>
+
+				<div class="form-check-inline">
+					<label>Egípcio?</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="tribo"
+						onChange="setTribo(document.inputForm.tribo.options[document.inputForm.tribo.options.selectedIndex].value)">
+						<option value=1>Sim</option>
+						<option value=0 selected>Não</option>
+					</select>
+				</div>
+				<br>
+
+				<div class="form-check-inline">
+					<label>Porcentagem Bônus de Oásis</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="oasis1"
+						onChange="setOasis1(document.inputForm.oasis1.options[document.inputForm.oasis1.options.selectedIndex].value)">
+						<option value=0>0%</option>
+						<option value=0.25>25%</option>
+						<option value=0.50>50%</option>
+					</select>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="oasis2"
+						onChange="setOasis2(document.inputForm.oasis2.options[document.inputForm.oasis2.options.selectedIndex].value)">
+						<option value=0>0%</option>
+						<option value=0.25>25%</option>
+						<option value=0.50>50%</option>
+					</select>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="oasis3"
+						onChange="setOasis3(document.inputForm.oasis3.options[document.inputForm.oasis3.options.selectedIndex].value)">
+						<option value=0>0%</option>
+						<option value=0.25>25%</option>
+						<option value=0.50>50%</option>
+					</select>
+				</div>
+				<br>
+
+				<div class="form-check-inline">
+					<label>Bônus de gold na produção?</label>
+				</div>
+				<div class="form-check-inline">
+					<select class='custom-select custom-select-sm' name="gold"
+						onChange="setGold(document.inputForm.gold.options[document.inputForm.gold.options.selectedIndex].value)">
+						<option value=1.25>Sim (25%)</option>
+						<option value=1>Não</option>
+					</select>
+				</div>
+				<br><br>
+
+				<button class="btn btn-light btn-outline-dark" type="button" onclick="getOrder()">Calcular</button>
+			</form>
+			<br>
+		</div>
+		<p id="demo"></p>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(() => {
+			var divs = document.querySelectorAll('div');
+			var ultimaDiv = divs[divs.length - 1];
+			if (ultimaDiv.className == "") {
+				document.body.removeChild(ultimaDiv);
+			}
+		});
+	</script>
+</body>
+
+</html>
