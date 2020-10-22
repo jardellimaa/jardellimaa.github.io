@@ -37,6 +37,22 @@
 			color: rgb(92, 101, 255);
 			text-align: center;
 		}
+		
+		.black{
+		    	width: 100%;
+			height: auto;
+			min-width: 510px;
+		    	padding-left: 15px;
+			padding-right: 0px;
+			padding-top: 10px;
+			font-size: 15px;
+			min-width: 530px;
+		    	color: black;
+		}
+		
+		.black b, strong {
+		    	color:rgb(92, 101, 255);
+		}
 
 		.retangulo {
 			width: 100%;
@@ -72,7 +88,7 @@
 			padding-right: 0px;
 			padding-top: 10px;
 			font-size: 15px;
-			min-width: 510px;
+			min-width: 530px;
 			color: white;
 		}
 	</style>
@@ -478,7 +494,7 @@
 			reset();
 			z = document.getElementById("demo");  // nothing
 			z.innerHTML = "Calculando...";
-			var output = "<p>*RDI = Retorno de Investimento</p><table class='table table-striped'><thead><tr><th class='stats'>[M, P, MH, ETA]</th><th>[Campos]</th><th class='producao'>Produção</th><th class='acao'>Ação</th><th>Dias para RDI*</th></tr></thead>";
+			var output = "<div class='black'><p><b>RDI*</b> = Retorno de Investimento; <b>M</b> = Moinho; <b>P</b> = Padaria; <b>MH</b> = Mansão do Heroi; <b>ETA</b> = Estação de Tratamento de Água</p></div><table class='table table-striped'><thead><tr><th class='stats'>[M, P, MH, ETA]</th><th>[Campos]</th><th class='producao'>Produção</th><th class='acao'>Ação</th><th>Dias para RDI*</th></tr></thead>";
 
 			if (cap) {
 				while (fields.lowest() < 21) {
